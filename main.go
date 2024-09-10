@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,7 +24,11 @@ func main() {
 	todos := []Todo{}
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.Status(200).JSON(fiber.Map{"msg": "Hey VSauce! Michael here"})
+		return c.Status(200).JSON(fiber.Map{"msg": "Hey Vsauce! Michael here. I'm supposed to show todo list somewhere here ... Or am I?"})
+	})
+
+	app.Get("/api/todos", func(c *fiber.Ctx) error {
+		return c.Status(200).JSON(todos)
 	})
 
 	// Create a TODO
@@ -55,6 +60,17 @@ func main() {
 		}
 
 		return c.Status(404).JSON(fiber.Map{"error": "Requested Todo not found"})
+	})
+
+	app.Delete("/api/todos/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		id_num, _ := strconv.Atoi(id)
+		if id_num < len(todos) {
+			todos = append(todos[:id_num], todos[id_num+1:]...)
+			return c.Status(200).JSON(todos)
+		}
+
+		return c.Status(404).JSON(fiber.Map{"error": "Requested index not found"})
 	})
 
 	log.Fatal(app.Listen(":4000"))
