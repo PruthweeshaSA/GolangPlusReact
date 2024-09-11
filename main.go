@@ -107,10 +107,35 @@ func postTodo(c *fiber.Ctx) error {
 }
 
 func patchTodo(c *fiber.Ctx) error {
-	return nil
+	id, err := primitive.ObjectIDFromHex(c.Params("id"))
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"Completed": true}}
+
+	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(201).JSON(fiber.Map{"completed": id, "update_result": updateResult})
 
 }
 
 func deleteTodo(c *fiber.Ctx) error {
-	return nil
+	id, err := primitive.ObjectIDFromHex(c.Params("id"))
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": id}
+
+	deleteResult, err := collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return c.Status(200).JSON(fiber.Map{"error": err})
+	}
+
+	return c.Status(201).JSON(fiber.Map{"delete_result": deleteResult})
 }
