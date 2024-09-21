@@ -3,6 +3,7 @@ module booking_app
 go 1.23.1
 
 require (
+	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/gofiber/fiber/v2 v2.52.5 // indirect
 	github.com/golang/snappy v0.0.4 // indirect

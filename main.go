@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 
+	"github.com/BurntSushi/toml"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,11 +24,31 @@ type Todo struct {
 
 var collection *mongo.Collection
 
+func newAsyncTerminalWrapper(command string) {
+	cmd_Command := exec.Command("cmd", "/C", "start", "cmd", "/K", command)
+	if err := cmd_Command.Start(); err != nil {
+		fmt.Println(err)
+	}
+}
+
 func main() {
 
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	port := os.Getenv("PORT")
+
+	var configData map[string]interface{}
+	if _, err := toml.DecodeFile("config.toml", &configData); err != nil {
+		log.Println(err)
+	} else {
+		commandString, ok := configData["rssh_full_command_sans_port"].(string)
+		if ok {
+			commandString = commandString + " " + port
+			newAsyncTerminalWrapper(commandString)
+		}
 	}
 
 	MONGODB_URI := os.Getenv("mongodb_uri")
@@ -54,8 +76,6 @@ func main() {
 	app.Post("/api/todos/", postTodo)
 	app.Patch("/api/todos/:id", patchTodo)
 	app.Delete("/api/todos/:id", deleteTodo)
-
-	port := os.Getenv("PORT")
 
 	log.Fatal(app.Listen("0.0.0.0:" + port))
 
